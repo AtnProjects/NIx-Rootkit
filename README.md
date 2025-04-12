@@ -1,0 +1,2 @@
+# NIx-Rootkit
+nixos experimental

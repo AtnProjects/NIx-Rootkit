@@ -1,83 +1,98 @@
 <div align="center">
 
-# ❄️ KooL's NixOS + Hyprland Manual Installation Guide ❄️
+# ❄️ Guía de Instalación Manual - NixOS + Hyprland por KooL ❄️
 
-💻 A minimalist step-by-step manual install for the NixOS-Hyprland setup from [@JaKooLit](https://github.com/JaKooLit)
+💻 Una instalación paso a paso, minimalista y manual del setup NixOS-Hyprland de [@JaKooLit](https://github.com/JaKooLit)
 
 </div>
 
 ---
 
-## 🦽 Manual Installation Steps
+## 🦽 Pasos para la Instalación Manual
 
-Follow this guide if you want to **set up everything manually** and have full control over your configuration.
+Sigue esta guía si deseas **configurar todo manualmente** y tener control total sobre tu sistema NixOS + Hyprland.
 
 ---
 
-### 📦 1. Install Required Packages
+### 📦 1. Instalar Paquetes Requeridos
 
-Make sure you have these essential tools before starting:
+Asegúrate de tener estas herramientas instaladas antes de comenzar:
 
 ```bash
 nix-shell -p git vim curl pciutils
-🛠️ You can replace vim with nano or any other terminal-based editor of your choice.
+```
 
-📁 2. Clone the Repository
-Clone KooL’s NixOS-Hyprland setup into your home directory and navigate into it:
+> 🛠️ Puedes reemplazar `vim` por `nano` o el editor de texto que prefieras.
 
-bash
-Copy
-Edit
+---
+
+### 📁 2. Clonar el Repositorio
+
+Clona el repositorio del setup NixOS-Hyprland de KooL y entra en él:
+
+```bash
 git clone --depth 1 https://github.com/JaKooLit/NixOS-Hyprland.git ~/NixOS-Hyprland
 cd ~/NixOS-Hyprland
-🖥️ 3. Set Up Your Host Configuration
-Copy the default host setup and rename it to your desired hostname:
+```
 
-bash
-Copy
-Edit
-cp -r hosts/default hosts/<your-hostname>
-Replace <your-hostname> with a name for your system.
+---
 
-✏️ 4. Customize Your Configuration
-Edit the following files inside your new host directory:
+### 🖥️ 3. Crear la Configuración para tu Host
 
-hosts/<your-hostname>/config.nix
+Copia la configuración por defecto y renómbrala con el nombre que le quieras dar a tu máquina:
 
-hosts/<your-hostname>/packages-fonts.nix
+```bash
+cp -r hosts/default hosts/<tu-nombre-de-host>
+```
 
-hosts/<your-hostname>/users.nix
+Reemplaza `<tu-nombre-de-host>` por un nombre único para tu sistema.
 
-🧠 5. Generate Your Hardware Config
-Create a hardware config based on your system:
+---
 
-bash
-Copy
-Edit
-sudo nixos-generate-config --show-hardware-config > hosts/<your-hostname>/hardware.nix
-🚀 6. Build and Switch to Your Configuration
-Now apply the setup using flakes (make sure to use your actual hostname):
+### ✏️ 4. Personaliza tu Configuración
 
-bash
-Copy
-Edit
+Edita los siguientes archivos dentro de tu nuevo directorio `hosts/<tu-nombre-de-host>/`:
+
+- `config.nix`
+- `packages-fonts.nix`
+- `users.nix`
+
+Haz los cambios necesarios para adaptarlos a tu hardware y preferencias personales.
+
+---
+
+### 🧠 5. Generar Configuración de Hardware
+
+Genera la configuración de hardware específica para tu equipo:
+
+```bash
+sudo nixos-generate-config --show-hardware-config > hosts/<tu-nombre-de-host>/hardware.nix
+```
+
+---
+
+### 🚀 6. Construir e Instalar tu Configuración
+
+Aplica tu configuración usando flakes (reemplaza `<tu-nombre-de-host>` con el nombre que usaste):
+
+```bash
 NIX_CONFIG="experimental-features = nix-command flakes" \
-sudo nixos-rebuild switch --flake .#<your-hostname>
-🎉 You're Done!
-You now have a clean and modular Hyprland setup on NixOS!
-Once installed, you can add:
+sudo nixos-rebuild switch --flake .#<tu-nombre-de-host>
+```
 
-GTK Themes & Icons
+---
 
-KooL's Hyprland Dots
+## 🎉 ¡Instalación Completa!
 
-Wallpapers
+¡Ya tienes un sistema NixOS + Hyprland modular y limpio!  
+Una vez finalizada la instalación, puedes agregar:
 
-🔗 Visit the original repo for more customizations and extras:
-JaKooLit/NixOS-Hyprland
+- Temas e iconos GTK  
+- Dotfiles de Hyprland de KooL  
+- Fondos de pantalla personalizados  
 
-<div align="center">
-⭐ Give the original project a star if you found it helpful!
-Made with ❤️ by @JaKooLit
+---
 
-</div> ```
+> 🔗 **Enlaces Útiles**  
+> [Repositorio Original](https://github.com/JaKooLit/NixOS-Hyprland)  
+> [Dotfiles de Hyprland

@@ -33,7 +33,7 @@ Las aplicaciones están declaradas en `hosts/rootkit/home/home.nix` y cubren:
 - Captura y streaming (flameshot, obs-studio).
 - Educación (arduino-ide).
 - Utilidades de arranque
--
+
 
 ![2025-05-26_01-41](https://github.com/user-attachments/assets/2990542d-0242-4462-a38c-c1a1d619a734)
 

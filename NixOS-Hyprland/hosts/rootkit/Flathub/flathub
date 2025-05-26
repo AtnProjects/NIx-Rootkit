@@ -1,0 +1,3 @@
+flatpak install flathub net.mkiol.SpeechNote
+flatpak install flathub org.upscayl.Upscayl
+flatpak install flathub com.rustdesk.RustDesk

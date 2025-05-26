@@ -1,5 +1,5 @@
+# 🎮 NixOS Master Setup · Gaming, Creatividad y Terminal con Flow
 
-# ✨ Sistema NixOS Personalizado · Modular, Potente y con Estilo ✨
 
 
 ### `default/`

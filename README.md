@@ -1,91 +1,87 @@
-🎮 NixOS Master Setup
-Gaming, Creatividad y Terminal con Flow
+# 🎮 **NixOS Master Setup**  
+### _Gaming, Creatividad y Terminal con Flow_
 
+![NixOS Gaming Desktop](https://github.com/user-attachments/assets/e9355756-3295-41a1-b054-46d3c8089b2c)
 
-📁 Estructura del Proyecto
-default/
+---
+
+## 📁 Estructura del Proyecto
+
+### `default/`  
 🔹 Configuración base mínima para entornos genéricos, pruebas o VMs.
 
-rootkit/
+### `rootkit/`  
 💻 Entorno principal con sistema gráfico completo, gaming y virtualización.
 
-Configuración completa de sistema, hardware y usuarios.
+- Configuración completa de sistema, hardware y usuarios.
+- Repositorio de Flatpak con Flathub habilitado.
+- Aplicaciones y servicios declarados en `home/` (sin Home Manager).
+- Soporte para virtualización en `Host-desktop/`.
 
-Repositorio de Flatpak con Flathub habilitado.
+---
 
-Aplicaciones y servicios declarados en home/ (sin Home Manager).
+## 🚀 Aplicaciones Principales
 
-Soporte para virtualización en Host-desktop/.
+Definidas en: `hosts/rootkit/home/home.nix`
 
-🚀 Aplicaciones Principales
-Definidas en: hosts/rootkit/home/home.nix
+### 🖥️ Terminal & CLI
+- `cowsay`, `fortune`, `cmatrix`
+- `htop`, `fastfetch`, `neofetch`
 
-🖥️ Terminal & CLI
-cowsay, fortune, cmatrix
+### 🧰 Sistema
+- `gparted`, `jq`, `nmcli`, `rsync`
+- Drivers gráficos (`mesa`, `libva-utils`)
 
-htop, fastfetch, neofetch
+### 🌐 Red & Sincronización
+- `syncthing`, `localsend`
 
-🧰 Sistema
-gparted, jq, nmcli, rsync
+### 👨‍💻 Desarrollo
+- `git`, `neovim`, `python39`, `jdk`
 
-Drivers gráficos (mesa, libva-utils)
+### 🗂️ Productividad
+- `obsidian`, `libreoffice-qt`, `onlyoffice-bin`
 
-🌐 Red & Sincronización
-syncthing, localsend
+### 📞 Comunicación
+- `telegram-desktop`, `vesktop`
 
-👨‍💻 Desarrollo
-git, neovim, python39, jdk
+### 🎮 Juegos
+- `steam`, `clonehero`
 
-🗂️ Productividad
-obsidian, libreoffice-qt, onlyoffice-bin
+### 🤖 Android
+- `android-tools`, `scrcpy`
 
-📞 Comunicación
-telegram-desktop, vesktop
+### 🎬 Multimedia
+- `vlc`, `mpv`, `gimp`, `inkscape`
 
-🎮 Juegos
-steam, clonehero
+### 📸 Captura & Streaming
+- `flameshot`, `obs-studio`
 
-🤖 Android
-android-tools, scrcpy
+### 🎓 Educación
+- `arduino-ide`
 
-🎬 Multimedia
-vlc, mpv, gimp, inkscape
+---
 
-📸 Captura & Streaming
-flameshot, obs-studio
+## 📸 Interfaz
 
-🎓 Educación
-arduino-ide
+| Escritorio | Aplicaciones |
+|------------|--------------|
+| ![2025-05-26_01-41](https://github.com/user-attachments/assets/2990542d-0242-4462-a38c-c1a1d619a734) | ![2025-05-26_01-45](https://github.com/user-attachments/assets/264173df-49d7-405f-aef3-3dcc07e94705) |
 
-📸 Interfaz
-Escritorio	Aplicaciones
-	
+---
 
-📜 Scripts
-🔐 Script de Gestión de WiFi — script.sh
+## 📜 Scripts
+
+### 🔐 Script de Gestión de WiFi — `script.sh`
+
 Automatiza la creación de perfiles de red en NetworkManager desde un archivo JSON exportado por apps como WiFiList (Shizuku).
 
-✅ Funcionalidades:
-Lee WiFiList_26_05_2025.json y crea conexiones con nmcli.
+#### ✅ Funcionalidades:
+- Lee `WiFiList_26_05_2025.json` y crea conexiones con `nmcli`.
+- Omite redes abiertas o sin contraseña.
+- Verifica dependencias (`jq`, `nmcli`) y existencia del archivo.
+- Ideal para restaurar redes tras reinstalaciones o clonado de sistema.
 
-Omite redes abiertas o sin contraseña.
+#### ▶️ Ejemplo de uso:
 
-Verifica dependencias (jq, nmcli) y existencia del archivo.
-
-Ideal para restaurar redes tras reinstalaciones o clonado de sistema.
-
-▶️ Ejemplo de uso:
-bash
-Copy
-Edit
+```bash
 bash script.sh
-🖼️
-
-
-🧠 Requisitos Previos
-Conocimientos básicos de NixOS y configuración declarativa.
-
-Familiaridad con nixos-rebuild, flake, y nmcli.
-
-JSON exportado de WiFiList en formato válido.
-

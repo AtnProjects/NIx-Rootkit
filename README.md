@@ -1,5 +1,6 @@
 # 🎮 NixOS Master Setup · Gaming, Creatividad y Terminal con Flow
 
+![image](https://github.com/user-attachments/assets/e9355756-3295-41a1-b054-46d3c8089b2c)
 
 
 ### `default/`

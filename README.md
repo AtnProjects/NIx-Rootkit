@@ -1,5 +1,6 @@
 
-## Hosts
+# ✨ Sistema NixOS Personalizado · Modular, Potente y con Estilo ✨
+
 
 ### `default/`
 

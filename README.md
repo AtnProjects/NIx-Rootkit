@@ -53,6 +53,7 @@ Ejemplo de uso:
 
 ```bash
 bash p.sh
+```
 ![image](https://github.com/user-attachments/assets/9b7f9cc7-f6c5-40d7-9780-a60d26413498)
 
 

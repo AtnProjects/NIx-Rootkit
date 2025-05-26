@@ -1,0 +1,1890 @@
+### Archivo: ./flake.nix
+# flake.nix
+{
+  description = "KooL's NixOS-Hyprland with Chaotic Nyx";
+
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
+    # hyprland.url = "github:hyprwm/Hyprland"; # hyprland development
+ 
+
+    # distro-grub-themes.url = "github:AdisonCavani/distro-grub-themes";
+    ags.url = "github:aylur/ags/v1"; # aylurs-gtk-shell-v1
+  };
+
+  outputs = inputs@{ self, nixpkgs, chaotic, ... }:
+    let
+      system = "x86_64-linux";
+      host = "rootkit";
+      username = "rootkit";
+
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
+    in {
+      nixosConfigurations = {
+        "${host}" = nixpkgs.lib.nixosSystem rec {
+          specialArgs = {
+            inherit system inputs username host;
+          };
+          modules = [
+            ./hosts/${host}/config.nix
+            # inputs.distro-grub-themes.nixosModules.default
+            chaotic.nixosModules.nyx-cache
+            chaotic.nixosModules.nyx-overlay
+            chaotic.nixosModules.nyx-registry
+          ];
+        };
+      };
+    };
+}
+
+
+### Archivo: ./hosts/default/config.nix
+# 💫 https://github.com/JaKooLit 💫 #
+# Main default config
+
+
+# NOTE!!! : Packages and Fonts are configured in packages-&-fonts.nix
+
+
+{ config, pkgs, host, username, options, lib, inputs, system, ...}: let
+  
+  inherit (import ./variables.nix) keyboardLayout;
+    
+  in {
+  imports = [
+    ./hardware.nix
+    ./users.nix
+    ./packages-fonts.nix
+    ../../modules/amd-drivers.nix
+    ../../modules/nvidia-drivers.nix
+    ../../modules/nvidia-prime-drivers.nix
+    ../../modules/intel-drivers.nix
+    ../../modules/vm-guest-services.nix
+    ../../modules/local-hardware-clock.nix
+  ];
+
+  # BOOT related stuff
+  boot = {
+    kernelPackages = pkgs.linuxPackages_zen; # zen Kernel
+    #kernelPackages = pkgs.linuxPackages_latest; # Kernel 
+
+    kernelParams = [
+      "systemd.mask=systemd-vconsole-setup.service"
+      "systemd.mask=dev-tpmrm0.device" #this is to mask that stupid 1.5 mins systemd bug
+      "nowatchdog" 
+      "modprobe.blacklist=sp5100_tco" #watchdog for AMD
+      "modprobe.blacklist=iTCO_wdt" #watchdog for Intel
+ 	  ];
+
+    # This is for OBS Virtual Cam Support
+    #kernelModules = [ "v4l2loopback" ];
+    #  extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
+    
+    initrd = { 
+      availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usb_storage" "usbhid" "sd_mod" ];
+      kernelModules = [ ];
+    };
+
+    # Needed For Some Steam Games
+    #kernel.sysctl = {
+    #  "vm.max_map_count" = 2147483642;
+    #};
+
+    ## BOOT LOADERS: NOTE USE ONLY 1. either systemd or grub  
+    # Bootloader SystemD
+    loader.systemd-boot.enable = true;
+  
+    loader.efi = {
+	    #efiSysMountPoint = "/efi"; #this is if you have separate /efi partition
+	    canTouchEfiVariables = true;
+  	  };
+
+    loader.timeout = 5;    
+  			
+    # Bootloader GRUB
+    #loader.grub = {
+	    #enable = true;
+	    #  devices = [ "nodev" ];
+	    #  efiSupport = true;
+      #  gfxmodeBios = "auto";
+	    #  memtest86.enable = true;
+	    #  extraGrubInstallArgs = [ "--bootloader-id=${host}" ];
+	    #  configurationName = "${host}";
+  	  #	 };
+
+    # Bootloader GRUB theme, configure below
+
+    ## -end of BOOTLOADERS----- ##
+  
+    # Make /tmp a tmpfs
+    tmp = {
+      useTmpfs = false;
+      tmpfsSize = "30%";
+      };
+    
+    # Appimage Support
+    binfmt.registrations.appimage = {
+      wrapInterpreterInShell = false;
+      interpreter = "${pkgs.appimage-run}/bin/appimage-run";
+      recognitionType = "magic";
+      offset = 0;
+      mask = ''\xff\xff\xff\xff\x00\x00\x00\x00\xff\xff\xff'';
+      magicOrExtension = ''\x7fELF....AI\x02'';
+      };
+    
+    plymouth.enable = true;
+  };
+
+  # GRUB Bootloader theme. Of course you need to enable GRUB above.. duh! and also, enable it on flake.nix
+  #distro-grub-themes = {
+  #  enable = true;
+  #  theme = "nixos";
+  #};
+
+  # Extra Module Options
+  drivers.amdgpu.enable = true;
+  drivers.intel.enable = true;
+   drivers.nvidia.enable = true;
+  drivers.nvidia-prime = {
+    enable = false;
+    intelBusID = "";
+    nvidiaBusID = "";
+  };
+  vm.guest-services.enable = false;
+  local.hardware-clock.enable = false;
+
+  # networking
+  networking.networkmanager.enable = true;
+  networking.hostName = "${host}";
+  networking.timeServers = options.networking.timeServers.default ++ [ "pool.ntp.org" ];
+
+  # Set your time zone.
+  services.automatic-timezoned.enable = true; #based on IP location
+  
+  #https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  #time.timeZone = "Asia/Seoul"; # Set local timezone
+
+  # Select internationalisation properties.
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "en_US.UTF-8";
+    LC_IDENTIFICATION = "en_US.UTF-8";
+    LC_MEASUREMENT = "en_US.UTF-8";
+    LC_MONETARY = "en_US.UTF-8";
+    LC_NAME = "en_US.UTF-8";
+    LC_NUMERIC = "en_US.UTF-8";
+    LC_PAPER = "en_US.UTF-8";
+    LC_TELEPHONE = "en_US.UTF-8";
+    LC_TIME = "en_US.UTF-8";
+  };
+
+
+  # Services to start
+  services = {
+    xserver = {
+      enable = false;
+      xkb = {
+        layout = "${keyboardLayout}";
+        variant = "";
+      };
+    };
+    
+    greetd = {
+      enable = true;
+      vt = 3;
+      settings = {
+        default_session = {
+          user = username;
+          command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --cmd Hyprland"; # start Hyprland with a TUI login manager
+        };
+      };
+    };
+    
+    smartd = {
+      enable = false;
+      autodetect = true;
+    };
+    
+	  gvfs.enable = true;
+	  tumbler.enable = true;
+
+	  pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+	    wireplumber.enable = true;
+  	  };
+	
+    #pulseaudio.enable = false; #unstable
+	  udev.enable = true;
+	  envfs.enable = true;
+	  dbus.enable = true;
+
+	  fstrim = {
+      enable = true;
+      interval = "weekly";
+      };
+  
+    libinput.enable = true;
+
+    rpcbind.enable = false;
+    nfs.server.enable = false;
+  
+    openssh.enable = true;
+    flatpak.enable = false;
+	
+  	blueman.enable = true;
+  	
+  	#hardware.openrgb.enable = true;
+  	#hardware.openrgb.motherboard = "amd";
+
+	  fwupd.enable = true;
+
+	  upower.enable = true;
+    
+    gnome.gnome-keyring.enable = true;
+    
+    #printing = {
+    #  enable = false;
+    #  drivers = [
+        # pkgs.hplipWithPlugin
+    #  ];
+    #};
+    
+    #avahi = {
+    #  enable = true;
+    #  nssmdns4 = true;
+    #  openFirewall = true;
+    #};
+    
+    #ipp-usb.enable = true;
+    
+    #syncthing = {
+    #  enable = false;
+    #  user = "${username}";
+    #  dataDir = "/home/${username}";
+    #  configDir = "/home/${username}/.config/syncthing";
+    #};
+
+  };
+  
+  systemd.services.flatpak-repo = {
+    path = [ pkgs.flatpak ];
+    script = ''
+      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    '';
+  };
+
+  # zram
+  zramSwap = {
+	  enable = true;
+	  priority = 100;
+	  memoryPercent = 30;
+	  swapDevices = 1;
+    algorithm = "zstd";
+    };
+
+  powerManagement = {
+  	enable = true;
+	  cpuFreqGovernor = "schedutil";
+  };
+
+  #hardware.sane = {
+  #  enable = true;
+  #  extraBackends = [ pkgs.sane-airscan ];
+  #  disabledDefaultBackends = [ "escl" ];
+  #};
+
+  # Extra Logitech Support
+  hardware.logitech.wireless.enable = false;
+  hardware.logitech.wireless.enableGraphical = false;
+
+  hardware.pulseaudio.enable = false; # stable branch
+
+  # Bluetooth
+  hardware = {
+  	bluetooth = {
+	    enable = true;
+	    powerOnBoot = true;
+	    settings = {
+		    General = {
+		      Enable = "Source,Sink,Media,Socket";
+		      Experimental = true;
+		    };
+      };
+    };
+  };
+
+  # Security / Polkit
+  security.rtkit.enable = true;
+  security.polkit.enable = true;
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (
+        subject.isInGroup("users")
+          && (
+            action.id == "org.freedesktop.login1.reboot" ||
+            action.id == "org.freedesktop.login1.reboot-multiple-sessions" ||
+            action.id == "org.freedesktop.login1.power-off" ||
+            action.id == "org.freedesktop.login1.power-off-multiple-sessions"
+          )
+        )
+      {
+        return polkit.Result.YES;
+      }
+    })
+  '';
+  security.pam.services.swaylock = {
+    text = ''
+      auth include login
+    '';
+  };
+
+  # Cachix, Optimization settings and garbage collection automation
+  nix = {
+    settings = {
+      auto-optimise-store = true;
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      substituters = [ "https://hyprland.cachix.org" ];
+      trusted-public-keys = [ "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc=" ];
+    };
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 7d";
+    };
+  };
+
+  # Virtualization / Containers
+  virtualisation.libvirtd.enable = false;
+  virtualisation.podman = {
+    enable = false;
+    dockerCompat = false;
+    defaultNetwork.settings.dns_enabled = false;
+  };
+
+  # OpenGL
+  hardware.graphics = {
+    enable = true;
+  };
+
+  console.keyMap = "${keyboardLayout}";
+
+  # For Electron apps to use wayland
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+
+  # Open ports in the firewall.
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  # networking.firewall.enable = false;
+
+  # This value determines the NixOS release from which the default
+  # settings for stateful data, like file locations and database versions
+  # on your system were taken. It‘s perfectly fine and recommended to leave
+  # this value at the release version of the first install of this system.
+  # Before changing this value read the documentation for this option
+  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+  system.stateVersion = "24.11"; # Did you read the comment?
+}
+
+
+### Archivo: ./hosts/default/packages-fonts.nix
+# 💫 https://github.com/JaKooLit 💫 #
+# Packages and Fonts config including the "programs" options
+
+{ pkgs, inputs, ...}: let
+
+  python-packages = pkgs.python3.withPackages (
+    ps:
+      with ps; [
+        requests
+        pyquery # needed for hyprland-dots Weather script
+        ]
+    );
+
+  in {
+
+  nixpkgs.config.allowUnfree = true;
+  
+  environment.systemPackages = (with pkgs; [
+  # System Packages
+    bc
+    baobab
+    btrfs-progs
+    clang
+    curl
+    cpufrequtils
+    duf
+    findutils
+    ffmpeg   
+    glib #for gsettings to work
+    gsettings-qt
+    git
+    killall  
+    libappindicator
+    libnotify
+    openssl #required by Rainbow borders
+    pciutils
+    vim
+    wget
+    xdg-user-dirs
+    xdg-utils
+
+    fastfetch
+    (mpv.override {scripts = [mpvScripts.mpris];}) # with tray
+    #ranger
+      
+    # Hyprland Stuff
+    #(ags.overrideAttrs (oldAttrs: { inherit (oldAttrs) pname; version = "1.8.2"; }))
+    ags # desktop overview  
+    btop
+    brightnessctl # for brightness control
+    cava
+    cliphist
+    loupe
+    gnome-system-monitor
+    grim
+    gtk-engine-murrine #for gtk themes
+    hypridle
+    imagemagick 
+    inxi
+    jq
+    kitty
+    libsForQt5.qtstyleplugin-kvantum #kvantum
+    networkmanagerapplet
+    nwg-displays
+    nwg-look
+    nvtopPackages.full	 
+    pamixer
+    pavucontrol
+    playerctl
+    polkit_gnome
+    libsForQt5.qt5ct
+    kdePackages.qt6ct
+    kdePackages.qtwayland
+    kdePackages.qtstyleplugin-kvantum #kvantum
+    rofi-wayland
+    slurp
+    swappy
+    swaynotificationcenter
+    swww
+    unzip
+    wallust
+    wl-clipboard
+    wlogout
+    xarchiver
+    yad
+    yt-dlp
+
+    #waybar  # if wanted experimental next line
+    #(pkgs.waybar.overrideAttrs (oldAttrs: { mesonFlags = oldAttrs.mesonFlags ++ [ "-Dexperimental=true" ];}))
+  ]) ++ [
+	  python-packages
+  ];
+
+  # FONTS
+  fonts.packages = with pkgs; [
+    noto-fonts
+    fira-code
+    noto-fonts-cjk-sans
+    jetbrains-mono
+    font-awesome
+    terminus_font
+    victor-mono
+    (nerdfonts.override {fonts = ["JetBrainsMono"];}) # stable banch
+    (nerdfonts.override {fonts = ["FantasqueSansMono"];}) # stable banch
+    
+    #nerd-fonts.jetbrains-mono # unstable 
+    #nerd-fonts.fira-code # unstable
+    #nerd-fonts.fantasque-sans-mono #unstable
+ 	];
+  
+  programs = {
+	  hyprland = {
+      enable = true;
+     	  #package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland; #hyprland-git
+		    #portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland; #xdph-git
+     	  
+        portalPackage = pkgs.xdg-desktop-portal-hyprland; # xdph none git
+  	  xwayland.enable = true;
+    };
+
+	
+	  waybar.enable = true;
+	  hyprlock.enable = true;
+	  firefox.enable = true;
+	  git.enable = true;
+    nm-applet.indicator = true;
+    #neovim.enable = true;
+
+	  thunar.enable = true;
+	  thunar.plugins = with pkgs.xfce; [
+		  exo
+		  mousepad
+		  thunar-archive-plugin
+		  thunar-volman
+		  tumbler
+  	  ];
+	
+    virt-manager.enable = false;
+    
+    #steam = {
+    #  enable = true;
+    #  gamescopeSession.enable = true;
+    #  remotePlay.openFirewall = true;
+    #  dedicatedServer.openFirewall = true;
+    #};
+    
+    xwayland.enable = true;
+
+    dconf.enable = true;
+    seahorse.enable = true;
+    fuse.userAllowOther = true;
+    mtr.enable = true;
+    gnupg.agent = {
+      enable = true;
+      enableSSHSupport = true;
+    };
+	
+  };
+
+  # Extra Portal Configuration
+  xdg.portal = {
+    enable = true;
+    wlr.enable = false;
+    extraPortals = [
+      pkgs.xdg-desktop-portal-gtk
+    ];
+    configPackages = [
+      pkgs.xdg-desktop-portal-gtk
+      pkgs.xdg-desktop-portal
+    ];
+    };
+
+  }
+
+
+### Archivo: ./hosts/default/users.nix
+# 💫 https://github.com/JaKooLit 💫 #
+# Users - NOTE: Packages defined on this will be on current user only
+
+{ pkgs, username, ... }:
+
+let
+  inherit (import ./variables.nix) gitUsername;
+in
+{
+  users = { 
+    mutableUsers = true;
+    users."${username}" = {
+      homeMode = "755";
+      isNormalUser = true;
+      description = "${gitUsername}";
+      extraGroups = [
+        "networkmanager"
+        "wheel"
+        "libvirtd"
+        "scanner"
+        "lp"
+        "video" 
+        "input" 
+        "audio"
+      ];
+
+    # define user packages here
+    packages = with pkgs; [
+      ];
+    };
+    
+    defaultUserShell = pkgs.zsh;
+  }; 
+  
+  environment.shells = with pkgs; [ zsh ];
+  environment.systemPackages = with pkgs; [ lsd fzf ]; 
+    
+  programs = {
+  # Zsh configuration
+	  zsh = {
+    	enable = true;
+	  	enableCompletion = true;
+      ohMyZsh = {
+        enable = true;
+        plugins = ["git"];
+        theme = "agnoster"; 
+      	};
+      
+      autosuggestions.enable = true;
+      syntaxHighlighting.enable = true;
+      
+      promptInit = ''
+        fastfetch -c $HOME/.config/fastfetch/config-compact.jsonc
+
+        #pokemon colorscripts like. Make sure to install krabby package
+        #krabby random --no-mega --no-gmax --no-regional --no-title -s; 
+
+        # Set-up icons for files/directories in terminal using lsd
+        alias ls='lsd'
+        alias l='ls -l'
+        alias la='ls -a'
+        alias lla='ls -la'
+        alias lt='ls --tree'
+
+        source <(fzf --zsh);
+        HISTFILE=~/.zsh_history;
+        HISTSIZE=10000;
+        SAVEHIST=10000;
+        setopt appendhistory;
+        '';
+      };
+   };
+}
+
+
+### Archivo: ./hosts/default/variables.nix
+# 💫 https://github.com/JaKooLit 💫 #
+# Variables
+
+{
+  # Git Configuration ( For Pulling Software Repos )
+  gitUsername = "JaKooLit";
+  gitEmail = "ejhay.games@gmail.com";
+
+  # Hyprland Settings
+  extraMonitorSettings = "";
+
+  # Waybar Settings
+  clock24h = true;
+
+  # Program Options
+  browser = "firefox"; # Set Default Browser (google-chrome-stable for google-chrome)
+  terminal = "kitty"; # Set Default System Terminal
+  keyboardLayout = "us";
+}
+
+
+### Archivo: ./hosts/rootkit/config.nix
+# 💫 https://github.com/JaKooLit 💫 #
+# Main default config
+
+
+# NOTE!!! : Packages and Fonts are configured in packages-&-fonts.nix
+
+
+{ config, pkgs, host, username, options, lib, inputs, system, ...}: let
+  
+  inherit (import ./variables.nix) keyboardLayout;
+    
+  in {
+  imports = [
+   ./import.nix
+    ./hardware.nix
+    ./users.nix
+    ./packages-fonts.nix
+    ../../modules/amd-drivers.nix
+    ../../modules/nvidia-drivers.nix
+    ../../modules/nvidia-prime-drivers.nix
+    ../../modules/intel-drivers.nix
+    ../../modules/vm-guest-services.nix
+    ../../modules/local-hardware-clock.nix
+  ];
+     # BOOT related stuff
+  boot = {
+    #kernelPackages = pkgs.;
+    kernelPackages = pkgs.linuxPackages_6_12; # Kernel 
+   # kernelPackages = pkgs.linuxPackages_lts;  # kernel LTS compatible
+     blacklistedKernelModules = [ "kvm" "kvm_intel" "kvm_amd" ];
+
+    kernelParams = [
+      "systemd.mask=systemd-vconsole-setup.service"
+      "systemd.mask=dev-tpmrm0.device" #this is to mask that stupid 1.5 mins systemd bug
+      "nowatchdog" 
+      "modprobe.blacklist=sp5100_tco" #watchdog for AMD
+      "modprobe.blacklist=iTCO_wdt" #watchdog for Intel
+  ];
+    # This is for OBS Virtual Cam Support
+    #kernelModules = [ "v4l2loopback" ];
+    #  extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
+    
+    initrd = { 
+      availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usb_storage" "usbhid" "sd_mod" ];
+      kernelModules = [ ];
+    };
+
+    # Needed For Some Steam Games
+    #kernel.sysctl = {
+    #  "vm.max_map_count" = 2147483642;
+    #};
+
+    ## BOOT LOADERS: NOTE USE ONLY 1. either systemd or grub  
+    # Bootloader SystemD
+    loader.systemd-boot.enable = true;
+  
+    loader.efi = {
+	    #efiSysMountPoint = "/efi"; #this is if you have separate /efi partition
+	    canTouchEfiVariables = true;
+  	  };
+
+    loader.timeout = 5;    
+  			
+    # Bootloader GRUB
+    #loader.grub = {
+	    #enable = true;
+	    #  devices = [ "nodev" ];
+	    #  efiSupport = true;
+      #  gfxmodeBios = "auto";
+	    #  memtest86.enable = true;
+	    #  extraGrubInstallArgs = [ "--bootloader-id=${host}" ];
+	    #  configurationName = "${host}";
+  	  #	 };
+
+    # Bootloader GRUB theme, configure below
+
+    ## -end of BOOTLOADERS----- ##
+  
+    # Make /tmp a tmpfs
+    tmp = {
+      useTmpfs = false;
+      tmpfsSize = "30%";
+      };
+    
+    # Appimage Support
+    binfmt.registrations.appimage = {
+      wrapInterpreterInShell = false;
+      interpreter = "${pkgs.appimage-run}/bin/appimage-run";
+      recognitionType = "magic";
+      offset = 0;
+      mask = ''\xff\xff\xff\xff\x00\x00\x00\x00\xff\xff\xff'';
+      magicOrExtension = ''\x7fELF....AI\x02'';
+      };
+       
+
+
+  
+
+ 
+    plymouth.enable = true;
+  };
+
+
+
+  
+
+  # GRUB Bootloader theme. Of course you need to enable GRUB above.. duh! and also, enable it on flake.nix
+  #distro-grub-themes = {
+  #  enable = true;
+  #  theme = "nixos";
+  #};
+
+  # Extra Module Options
+  drivers.amdgpu.enable = false;
+  drivers.intel.enable = true;
+   drivers.nvidia.enable = true;
+  drivers.nvidia-prime = {
+    enable = false;
+    intelBusID = "";
+    nvidiaBusID = "";
+  };
+  vm.guest-services.enable = false;
+  local.hardware-clock.enable = false;
+   #
+# services.scx.enable = true; # by default uses scx_rustlan
+  # networking
+  networking.networkmanager.enable = true;
+  networking.hostName = "${host}";
+  networking.timeServers = options.networking.timeServers.default ++ [ "pool.ntp.org" ];
+
+
+  # Set your time zone.
+#  services.automatic-timezoned.enable = true; #based on IP location
+  
+  #https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+   #time.timeZone = "America/Bogota"  # Set local timezone to Colombia
+
+   time.timeZone = "America/Bogota";
+  # Select internationalisation properties.
+ 
+  i18n.defaultLocale = "es_CO.UTF-8";
+
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS        = "es_CO.UTF-8";
+    LC_IDENTIFICATION = "es_CO.UTF-8";
+    LC_MEASUREMENT    = "es_CO.UTF-8";
+    LC_MONETARY       = "es_CO.UTF-8";
+    LC_NAME           = "es_CO.UTF-8";
+    LC_NUMERIC        = "es_CO.UTF-8";
+    LC_PAPER          = "es_CO.UTF-8";
+    LC_TELEPHONE      = "es_CO.UTF-8";
+    LC_TIME           = "es_CO.UTF-8";
+  };
+
+
+
+  # Services to start
+  services = {
+    xserver = {
+      enable = false;
+      xkb = {
+        layout = "${keyboardLayout}";
+        variant = "";
+      };
+    };
+   
+
+    
+    greetd = {
+      enable = true;
+      vt = 3;
+      settings = {
+        default_session = {
+          user = username;
+          command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --cmd Hyprland"; # start Hyprland with a TUI login manager
+        };
+      };
+    };
+      
+       asusd = {
+    enable = true;
+    enableUserService = true;
+  };
+
+
+
+
+    smartd = {
+      enable = false;
+      autodetect = true;
+    };
+    
+	  gvfs.enable = true;
+	  tumbler.enable = true;
+
+	  pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+	    wireplumber.enable = true;
+  	  };
+	
+    #pulseaudio.enable = false; #unstable
+	  udev.enable = true;
+	  envfs.enable = true;
+	  dbus.enable = true;
+
+	  fstrim = {
+      enable = true;
+      interval = "weekly";
+      };
+  
+    libinput.enable = true;
+
+    rpcbind.enable = false;
+    nfs.server.enable = false;
+  
+    openssh.enable = true;
+    flatpak.enable = true;
+	
+  	blueman.enable = true;
+  	
+  	#hardware.openrgb.enable = true;
+  	#hardware.openrgb.motherboard = "amd";
+
+	  fwupd.enable = false;
+
+	  upower.enable = true;
+    
+    gnome.gnome-keyring.enable = true;
+    
+    #printing = {
+    #  enable = false;
+    #  drivers = [
+        # pkgs.hplipWithPlugin
+    #  ];
+    #};
+    
+    #avahi = {
+    #  enable = true;
+    #  nssmdns4 = true;
+    #  openFirewall = true;
+    #};
+    
+    #ipp-usb.enable = true;
+    
+    #syncthing = {
+    #  enable = false;
+    #  user = "${username}";
+    #  dataDir = "/home/${username}";
+    #  configDir = "/home/${username}/.config/syncthing";
+    #};
+
+  };
+  
+  systemd.services.flatpak-repo = {
+    path = [ pkgs.flatpak ];
+    script = ''
+      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    '';
+  };
+
+  # zram
+  zramSwap = {
+	  enable = true;
+	  priority = 100;
+	  memoryPercent = 30;
+	  swapDevices = 1;
+    algorithm = "zstd";
+    };
+
+  powerManagement = {
+  	enable = true;
+	  cpuFreqGovernor = "schedutil";
+  };
+
+  #hardware.sane = {
+  #  enable = true;
+  #  extraBackends = [ pkgs.sane-airscan ];
+  #  disabledDefaultBackends = [ "escl" ];
+  #};
+
+  # Extra Logitech Support
+  hardware.logitech.wireless.enable = false;
+  hardware.logitech.wireless.enableGraphical = false;
+
+  hardware.pulseaudio.enable = false; # stable branch
+
+  # Bluetooth
+  hardware = {
+  	bluetooth = {
+	    enable = true;
+	    powerOnBoot = true;
+	    settings = {
+		    General = {
+		      Enable = "Source,Sink,Media,Socket";
+		      Experimental = true;
+		    };
+      };
+    };
+  };
+
+  # Security / Polkit
+  security.rtkit.enable = true;
+  security.polkit.enable = true;
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (
+        subject.isInGroup("users")
+          && (
+            action.id == "org.freedesktop.login1.reboot" ||
+            action.id == "org.freedesktop.login1.reboot-multiple-sessions" ||
+            action.id == "org.freedesktop.login1.power-off" ||
+            action.id == "org.freedesktop.login1.power-off-multiple-sessions"
+          )
+        )
+      {
+        return polkit.Result.YES;
+      }
+    })
+  '';
+  security.pam.services.swaylock = {
+    text = ''
+      auth include login
+    '';
+  };
+
+  # Cachix, Optimization settings and garbage collection automation
+  nix = {
+    settings = {
+      auto-optimise-store = true;
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      substituters = [ "https://hyprland.cachix.org" ];
+      trusted-public-keys = [ "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc=" ];
+    };
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 7d";
+    };
+  };
+
+  # Virtualization / Containers
+  virtualisation.libvirtd.enable = false;
+  virtualisation.podman = {
+    enable = false;
+    dockerCompat = false;
+    defaultNetwork.settings.dns_enabled = false;
+  };
+
+  # OpenGL
+  hardware.graphics = {
+    enable = true;
+  };
+
+  console.keyMap = "${keyboardLayout}";
+
+  # For Electron apps to use wayland
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+
+  # Open ports in the firewall.
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  # networking.firewall.enable = false;
+
+  # This value determines the NixOS release from which the default
+  # settings for stateful data, like file locations and database versions
+  # on your system were taken. It‘s perfectly fine and recommended to leave
+  # this value at the release version of the first install of this system.
+  # Before changing this value read the documentation for this option
+  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+  system.stateVersion = "24.11"; # Did you read the comment?
+}
+
+
+### Archivo: ./hosts/rootkit/hardware.nix
+# Do not modify this file!  It was generated by ‘nixos-generate-config’
+# and may be overwritten by future invocations.  Please make changes
+# to /etc/nixos/configuration.nix instead.
+{ config, lib, pkgs, modulesPath, ... }:
+
+{
+  imports =
+    [ (modulesPath + "/installer/scan/not-detected.nix")
+    ];
+
+  boot.initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "vmd" "nvme" ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ "kvm-intel" ];
+  boot.extraModulePackages = [ ];
+
+  fileSystems."/" =
+    { device = "/dev/disk/by-uuid/90d430a5-ce11-4942-a538-176533e607b6";
+      fsType = "ext4";
+    };
+
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/C61D-37A2";
+      fsType = "vfat";
+      options = [ "fmask=0077" "dmask=0077" ];
+    };
+
+  swapDevices = [ ];
+
+  # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
+  # (the default) this is the recommended approach. When using systemd-networkd it's
+  # still possible to use this option, but it's recommended to use it in conjunction
+  # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
+  networking.useDHCP = lib.mkDefault true;
+  # networking.interfaces.enp44s0.useDHCP = lib.mkDefault true;
+  # networking.interfaces.wlo1.useDHCP = lib.mkDefault true;
+
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+}
+
+
+### Archivo: ./hosts/rootkit/home/home.nix
+{ config, pkgs, ... }:
+
+{
+  environment.systemPackages = with pkgs; [
+
+    ##########################
+    # Terminal Fun & ASCII Art
+    ##########################
+    cowsay                   # Animal parlante con frases graciosas
+    fortune                  # Frases aleatorias (ideal junto a cowsay)
+    toilet                   # Texto en arte ASCII estilizado
+    figlet                   # Texto grande en ASCII
+    ponysay                 # Versión pony de cowsay
+    cmatrix                  # Efecto Matrix en la terminal
+    nyancat                  # Gato arcoíris animado en ASCII
+    bb                       # Demo animada antigua en ASCII
+    pipes                    # Tuberías animadas en terminal
+    asciiquarium             # Acuario animado en ASCII
+    unimatrix                # Otra variante estilo Matrix
+    ascii-image-converter    # Convierte imágenes a ASCII
+    fzf                      # Buscador interactivo en terminal
+    zbar      #codigos qr
+    wifi-qr
+    ##################################
+    # Estilo Retro / Terminal Vintage
+    ##################################
+    cool-retro-term          # Terminal estilo CRT retro
+    cbonsai                  # Bonsái animado en ASCII
+    tty-clock                # Reloj grande para terminal
+    pipes-rs                 # Versión moderna de pipes animado (hecho en Rust)
+
+    #####################
+    # Herramientas del sistema
+    #####################
+    gparted                  # Editor gráfico de particiones
+    htop                     # Monitor de procesos interactivo
+    btop                     # Monitor del sistema moderno y visual
+    fastfetch                # Muestra info del sistema al estilo neofetch
+
+    #####################
+    # Aceleración de video / Gráficos
+    #####################
+    libva-utils              # Herramientas para VA-API (aceleración por HW)
+    libvdpau-va-gl           # Traducción VDPAU a VA-API
+    intel-compute-runtime    # Soporte OpenCL para Intel
+    intel-vaapi-driver       # Driver VA-API para Intel
+    vaapiVdpau               # Traducción VA-API a VDPAU
+    mesa                     # Implementación OpenGL estándar (drivers gráficos)
+    egl-wayland              # Compatibilidad EGL con Wayland
+
+    #################
+    # Networking / Sync
+    #################
+    wget                     # Descargas desde terminal
+    syncthing                # Sincronización P2P entre dispositivos
+    localsend                # Compartir archivos en red local
+       # VPN basada en WireGuard, fácil de usar
+
+    ###########################
+    # Desarrollo / Dev Tools
+    ###########################
+    git                      # Control de versiones
+    neovim                   # Editor de texto mejorado (Vim moderno)
+    gedit                    # Editor gráfico de texto
+    python39                 # Intérprete Python 3.9
+    jdk                      # Java Development Kit
+    yazi                     # Navegador de archivos TUI con vista previa
+    tree                     # Muestra estructura de carpetas como árbol
+
+    ##########################
+    # Productividad / Notas
+    ##########################
+    obsidian                 # Notas en Markdown con gráficos
+    onlyoffice-bin           # Suite ofimática compatible con MS Office
+    libreoffice-qt   # ofimatica
+
+    ###############################
+    # Comunicación / Mensajería
+    ###############################
+    telegram-desktop         # Cliente de Telegram
+    vesktop                  # Cliente de Discord alternativo (basado en Vencord)
+
+    ##########
+    # Juegos
+    ##########
+    clonehero                # Juego de ritmo tipo Guitar Hero
+
+    ######################
+    # Herramientas Android
+    ######################
+    android-tools            # Herramientas ADB y Fastboot
+    scrcpy                   # Control de Android desde PC
+
+    ##############################
+    # Captura de pantalla / Streaming
+    ##############################
+    flameshot                # Herramienta potente de screenshots
+    obs-studio               # Grabación/Streaming profesional
+
+    ######################
+    # Multimedia / Piratería
+    ######################
+    stremio                  # Streaming de películas/series vía addons
+    #miru                     # Cliente de manga/anime
+    qbittorrent              # Cliente de descargas Torrent
+
+    ###############################
+    # KDE & Multimedia Creativa
+    ###############################
+    kdePackages.kdeconnect-kde    # Conexión entre teléfono y PC vía KDE Connect
+    plasma-browser-integration    # Integración navegador con escritorio KDE
+    qt5.qttools                   # Herramientas Qt5 (dep. de apps KDE)
+    qt6.qttools                   # Herramientas Qt6
+    ark                           # Gestor de archivos comprimidos
+    vlc                           # Reproductor multimedia completo
+    mpv                           # Reproductor ligero de video
+    kdePackages.kdenlive          # Editor de video profesional (KDE)
+    gimp                          # Edición de imágenes estilo Photos
+    inkscape                     # Edición de imágenes estilo
+
+    ##############
+    # Educación
+    ##############
+    arduino-ide                  # Entorno de desarrollo para Arduino
+
+    #####################################
+    # Utilidades Boot / ISO / USB Tools
+    #####################################
+    ventoy-bin                  # Crear USBs multi-ISO fácilmente
+   
+
+  ];
+}
+
+
+### Archivo: ./hosts/rootkit/home/programs/chormium/default.nix
+{ config, pkgs, ... }:
+
+{
+  environment.systemPackages = with pkgs; [
+    chromium
+  ];
+
+  programs.chromium = {
+    enable = true;
+    extensions = [
+      "cjpalhdlnbpafiamejdnhcphjbkeiagm" # uBlock Origin
+      "fploionmjgeclbkemipmkogoaohcdbig" # Page load time
+      "kglhbbefdnlheedjiejgomgmfplipfeb" # Jitsi Meetings
+      "ghecgabfgfdldnmbfkhmffcabddioke"  # Volume Master
+      "nngceckbapebfimnlniiiahkandclblb" # Bitwarden Manager
+    ];
+    extraOpts = {
+      "PasswordManagerEnabled" = "false";
+      "SpellcheckEnabled" = "true";
+      "SpellcheckLanguage" = [
+        "es-mx"
+        "es"
+      ];
+
+    };
+  };
+}
+
+
+### Archivo: ./hosts/rootkit/home/programs/steam/default.nix
+
+{ config, lib, pkgs, ... }:
+
+{
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
+    localNetworkGameTransfers.openFirewall = true;
+  };
+}
+
+
+### Archivo: ./hosts/rootkit/home/programs/sunshine/default.nix
+{ config, pkgs, ... }:
+
+{
+  services.sunshine = {
+    enable = true;
+    autoStart = true;
+    capSysAdmin = true; # Solo necesario si usas Wayland
+   
+  };
+}
+
+
+
+### Archivo: ./hosts/rootkit/home/programs/vscode/default.nix
+{ config, pkgs, ... }:
+
+{
+  environment.systemPackages = with pkgs; [
+    (vscode-with-extensions.override {
+      vscodeExtensions = with vscode-extensions; [
+        esbenp.prettier-vscode
+        dbaeumer.vscode-eslint
+        dracula-theme.theme-dracula
+        ms-python.python
+        rust-lang.rust-analyzer
+        ms-vscode.cpptools
+        ms-azuretools.vscode-docker
+        eamodio.gitlens
+      ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+        {
+          name = "LiveServer";
+          publisher = "ritwickdey";
+          version = "5.7.9";
+          sha256 = "c3409848439d96dc0c1739b96613b14abc6a435cb8fa02df07c2fe105160cc37";
+        }
+      ];
+    })
+  ];
+}
+
+
+### Archivo: ./hosts/rootkit/home/Services/wine/default.nix
+{ config, pkgs, ... }:
+
+{
+  environment.systemPackages = with pkgs; [
+    # Soporte para aplicaciones 32 y 64 bits
+    wineWowPackages.stable
+
+    # winetricks (útil para instalar .NET, DirectX, etc.)
+    winetricks
+       # support 64-bit only
+    (wine.override { wineBuild = "wine64"; })
+
+   
+    # Alternativas (usa SOLO UNA):
+     wineWowPackages.staging       # Versión experimental
+     wineWowPackages.waylandFull   # Para Wayland (experimental)
+     wine64
+
+  ];
+}
+
+### Archivo: ./hosts/rootkit/Host-desktop/virtmanager/default.nix
+{ config, pkgs, lib, ... }:
+
+{
+  programs.dconf.enable = true;
+
+  users.users.rootkit.extraGroups = [ "libvirtd" "kvm" ];
+
+  environment.systemPackages = with pkgs; [
+    virt-manager
+    virt-viewer
+    spice
+    spice-gtk
+    spice-protocol
+    win-virtio
+    win-spice
+    gnome.adwaita-icon-theme
+    qemu_kvm
+    virtiofsd
+  ];
+
+  virtualisation = {
+    libvirtd = {
+      enable = lib.mkForce true;
+      qemu = {
+        package = pkgs.qemu_kvm;
+        swtpm.enable = true;
+        ovmf.enable = true;
+        ovmf.packages = [ pkgs.OVMFFull.fd ];
+      };
+    };
+    spiceUSBRedirection.enable = true;
+  };
+
+  services.spice-vdagentd.enable = true;
+  systemd.services.virtlogd.enable = true;
+
+  programs.virt-manager.enable = lib.mkForce true;
+}
+	
+
+### Archivo: ./hosts/rootkit/Host-desktop/Virtualbox/default.nix
+{ config, pkgs, lib, ... }:
+
+{
+  virtualisation.virtualbox.host.enable = true;
+
+  virtualisation.virtualbox.guest = {
+    enable = true;
+    dragAndDrop = true;
+  };
+
+  users.extraGroups.vboxusers.members = [ "rootkit" ];
+}
+
+
+
+### Archivo: ./hosts/rootkit/import.nix
+{
+  imports = [
+    ./home/programs/chormium/default.nix
+    # ./home/Services/wine/default.nix
+    ./home/programs/sunshine/default.nix
+    ./Host-desktop/Virtualbox/default.nix
+    ./home/home.nix
+    # ./home/programs/steam/default.nix 
+    ./Host-desktop/virtmanager
+./home/programs/vscode/default.nix 
+  
+  ];
+}
+
+
+### Archivo: ./hosts/rootkit/packages-fonts.nix
+# 💫 https://github.com/JaKooLit 💫 #
+# Packages and Fonts config including the "programs" options
+
+{ pkgs, inputs, ...}: let
+
+  python-packages = pkgs.python3.withPackages (
+    ps:
+      with ps; [
+        requests
+        pyquery # needed for hyprland-dots Weather script
+        ]
+    );
+
+  in {
+
+  nixpkgs.config.allowUnfree = true;
+  
+  environment.systemPackages = (with pkgs; [
+  # System Packages
+    bc
+    baobab
+    btrfs-progs
+    clang
+    curl
+    cpufrequtils
+    duf
+    findutils
+    ffmpeg   
+    glib #for gsettings to work
+    gsettings-qt
+    git
+    killall  
+    libappindicator
+    libnotify
+    openssl #required by Rainbow borders
+    pciutils
+    vim
+    wget
+    xdg-user-dirs
+    xdg-utils
+
+    fastfetch
+    (mpv.override {scripts = [mpvScripts.mpris];}) # with tray
+    #ranger
+      
+    # Hyprland Stuff
+    #(ags.overrideAttrs (oldAttrs: { inherit (oldAttrs) pname; version = "1.8.2"; }))
+    ags # desktop overview  
+    btop
+    brightnessctl # for brightness control
+    cava
+    cliphist
+    loupe
+    gnome-system-monitor
+    grim
+    gtk-engine-murrine #for gtk themes
+    hypridle
+    imagemagick 
+    inxi
+    jq
+    kitty
+    libsForQt5.qtstyleplugin-kvantum #kvantum
+    networkmanagerapplet
+    nwg-displays
+    nwg-look
+    nvtopPackages.full	 
+    pamixer
+    pavucontrol
+    playerctl
+    polkit_gnome
+    libsForQt5.qt5ct
+    kdePackages.qt6ct
+    kdePackages.qtwayland
+    kdePackages.qtstyleplugin-kvantum #kvantum
+    rofi-wayland
+    slurp
+    swappy
+    swaynotificationcenter
+    swww
+    unzip
+    wallust
+    wl-clipboard
+    wlogout
+    xarchiver
+    yad
+    yt-dlp
+
+    #waybar  # if wanted experimental next line
+    #(pkgs.waybar.overrideAttrs (oldAttrs: { mesonFlags = oldAttrs.mesonFlags ++ [ "-Dexperimental=true" ];}))
+  ]) ++ [
+	  python-packages
+  ];
+
+  # FONTS
+  fonts.packages = with pkgs; [
+    noto-fonts
+    fira-code
+    noto-fonts-cjk-sans
+    jetbrains-mono
+    font-awesome
+    terminus_font
+    victor-mono
+    (nerdfonts.override {fonts = ["JetBrainsMono"];}) # stable banch
+    (nerdfonts.override {fonts = ["FantasqueSansMono"];}) # stable banch
+    
+    #nerd-fonts.jetbrains-mono # unstable 
+    #nerd-fonts.fira-code # unstable
+    #nerd-fonts.fantasque-sans-mono #unstable
+ 	];
+  
+  programs = {
+	  hyprland = {
+      enable = true;
+     	  #package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland; #hyprland-git
+		    #portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland; #xdph-git
+     	  
+        portalPackage = pkgs.xdg-desktop-portal-hyprland; # xdph none git
+  	  xwayland.enable = true;
+    };
+
+	
+	  waybar.enable = true;
+	  hyprlock.enable = true;
+	  firefox.enable = true;
+	  git.enable = true;
+    nm-applet.indicator = true;
+    #neovim.enable = true;
+
+	  thunar.enable = true;
+	  thunar.plugins = with pkgs.xfce; [
+		  exo
+		  mousepad
+		  thunar-archive-plugin
+		  thunar-volman
+		  tumbler
+  	  ];
+	
+    virt-manager.enable = false;
+    
+    #steam = {
+    #  enable = true;
+    #  gamescopeSession.enable = true;
+    #  remotePlay.openFirewall = true;
+    #  dedicatedServer.openFirewall = true;
+    #};
+    
+    xwayland.enable = true;
+
+    dconf.enable = true;
+    seahorse.enable = true;
+    fuse.userAllowOther = true;
+    mtr.enable = true;
+    gnupg.agent = {
+      enable = true;
+      enableSSHSupport = true;
+    };
+	
+  };
+
+  # Extra Portal Configuration
+  xdg.portal = {
+    enable = true;
+    wlr.enable = false;
+    extraPortals = [
+      pkgs.xdg-desktop-portal-gtk
+    ];
+    configPackages = [
+      pkgs.xdg-desktop-portal-gtk
+      pkgs.xdg-desktop-portal
+    ];
+    };
+
+  }
+
+
+### Archivo: ./hosts/rootkit/users.nix
+# 💫 https://github.com/JaKooLit 💫 #
+# Users - NOTE: Packages defined on this will be on current user only
+
+{ pkgs, username, ... }:
+
+let
+  inherit (import ./variables.nix) gitUsername;
+in
+{
+  users = { 
+    mutableUsers = true;
+    users."${username}" = {
+      homeMode = "755";
+      isNormalUser = true;
+      description = "${gitUsername}";
+      extraGroups = [
+        "networkmanager"
+        "wheel"
+        "libvirtd"
+        "scanner"
+        "lp"
+        "video" 
+        "input" 
+        "audio"
+      ];
+
+    # define user packages here
+    packages = with pkgs; [
+      ];
+    };
+    
+    defaultUserShell = pkgs.zsh;
+  }; 
+  
+  environment.shells = with pkgs; [ zsh ];
+  environment.systemPackages = with pkgs; [ lsd fzf ]; 
+    
+  programs = {
+  # Zsh configuration
+	  zsh = {
+    	enable = true;
+	  	enableCompletion = true;
+      ohMyZsh = {
+        enable = true;
+        plugins = ["git"];
+        theme = "agnoster"; 
+      	};
+      
+      autosuggestions.enable = true;
+      syntaxHighlighting.enable = true;
+      
+      promptInit = ''
+        fastfetch -c $HOME/.config/fastfetch/config-compact.jsonc
+
+        #pokemon colorscripts like. Make sure to install krabby package
+        #krabby random --no-mega --no-gmax --no-regional --no-title -s; 
+
+        # Set-up icons for files/directories in terminal using lsd
+        alias ls='lsd'
+        alias l='ls -l'
+        alias la='ls -a'
+        alias lla='ls -la'
+        alias lt='ls --tree'
+
+        source <(fzf --zsh);
+        HISTFILE=~/.zsh_history;
+        HISTSIZE=10000;
+        SAVEHIST=10000;
+        setopt appendhistory;
+        '';
+      };
+   };
+}
+
+
+### Archivo: ./hosts/rootkit/variables.nix
+# 💫 https://github.com/JaKooLit 💫 #
+# Variables
+
+{
+  # Git Configuration ( For Pulling Software Repos )
+  gitUsername = "JaKooLit";
+  gitEmail = "ejhay.games@gmail.com";
+
+  # Hyprland Settings
+  extraMonitorSettings = "";
+
+  # Waybar Settings
+  clock24h = true;
+
+  # Program Options
+  browser = "firefox"; # Set Default Browser (google-chrome-stable for google-chrome)
+  terminal = "kitty"; # Set Default System Terminal
+  keyboardLayout = "us";
+}
+
+
+### Archivo: ./modules/amd-drivers.nix
+# 💫 https://github.com/JaKooLit 💫 #
+
+{ lib, pkgs, config, ... }:
+with lib;
+let
+  cfg = config.drivers.amdgpu;
+in
+{
+  options.drivers.amdgpu = {
+    enable = mkEnableOption "Enable AMD Drivers";
+  };
+
+  config = mkIf cfg.enable {
+    systemd.tmpfiles.rules = [ "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.rocmPackages.clr}" ];
+    services.xserver.videoDrivers = [ "amdgpu" ];
+  
+    # OpenGL
+    hardware.graphics = {
+      extraPackages = with pkgs; [
+        libva
+			  libva-utils
+        ];
+    };
+  };
+}
+
+
+### Archivo: ./modules/intel-drivers.nix
+# 💫 https://github.com/JaKooLit 💫 #
+
+{ lib, pkgs, config, ... }:
+with lib;
+let
+  cfg = config.drivers.intel;
+in
+{
+  options.drivers.intel = {
+    enable = mkEnableOption "Enable Intel Graphics Drivers";
+  };
+
+  config = mkIf cfg.enable {
+    nixpkgs.config.packageOverrides = pkgs: {
+      vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+    };
+
+    # OpenGL
+    hardware.graphics = {
+      extraPackages = with pkgs; [
+        intel-media-driver
+        libvdpau-va-gl
+        libva
+			  libva-utils
+      ];
+    };
+  };
+}
+
+
+### Archivo: ./modules/local-hardware-clock.nix
+# 💫 https://github.com/JaKooLit 💫 #
+
+{ lib, pkgs, config, ... }:
+with lib;
+let
+  cfg = config.local.hardware-clock;
+in
+{
+  options.local.hardware-clock = {
+    enable = mkEnableOption "Change Hardware Clock To Local Time";
+  };
+
+  config = mkIf cfg.enable { time.hardwareClockInLocalTime = true; };
+}
+
+
+### Archivo: ./modules/nvidia-drivers.nix
+# 💫 https://github.com/JaKooLit 💫 #
+
+{ lib, pkgs, config, ... }:
+with lib;
+let
+  cfg = config.drivers.nvidia;
+in
+{
+  options.drivers.nvidia = {
+    enable = mkEnableOption "Enable Nvidia Drivers";
+  };
+
+  config = mkIf cfg.enable {
+    services.xserver.videoDrivers = [ "nvidia" ];
+    
+  hardware.graphics = {
+  	enable = true;
+  	enable32Bit = true;
+	  extraPackages = with pkgs; [
+	    vaapiVdpau
+  	  libvdpau
+  	  libvdpau-va-gl 
+  	  nvidia-vaapi-driver
+  	  vdpauinfo
+	    libva
+ 		  libva-utils	
+    	];
+  	};
+
+  hardware.nvidia = {
+    # Modesetting is required.
+    modesetting.enable = true;
+      
+    # Nvidia power management. Experimental, and can cause sleep/suspend to fail.
+    powerManagement.enable = false;
+      
+    # Fine-grained power management. Turns off GPU when not in use.
+    # Experimental and only works on modern Nvidia GPUs (Turing or newer).
+    powerManagement.finegrained = false;
+      
+    #dynamicBoost.enable = true; # Dynamic Boost
+
+    nvidiaPersistenced = false;
+
+    # Use the NVidia open source kernel module (not to be confused with the
+    # independent third-party "nouveau" open source driver).
+    # Support is limited to the Turing and later architectures. Full list of
+    # supported GPUs is at:
+    # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus
+    # Only available from driver 515.43.04+
+    # Currently alpha-quality/buggy, so false is currently the recommended setting.
+    open = false;
+      
+    # Enable the Nvidia settings menu,
+    # accessible via nvidia-settings.
+      
+    nvidiaSettings = true;
+      
+    # Optionally, you may need to select the appropriate driver version for your specific GPU.
+    package = config.boot.kernelPackages.nvidiaPackages.latest;
+    };
+  };
+}
+
+### Archivo: ./modules/nvidia-prime-drivers.nix
+# 💫 https://github.com/JaKooLit 💫 #
+
+{ lib, pkgs, config, ... }:
+with lib;
+let
+  cfg = config.drivers.nvidia-prime;
+in
+{
+  options.drivers.nvidia-prime = {
+    enable = mkEnableOption "Enable Nvidia Prime Hybrid GPU Offload";
+    intelBusID = mkOption {
+      type = types.str;
+      default = "PCI:1:0:0";
+    };
+    nvidiaBusID = mkOption {
+      type = types.str;
+      default = "PCI:0:2:0";
+    };
+  };
+
+  config = mkIf cfg.enable {
+    hardware.nvidia = {
+      prime = {
+        offload = {
+          enable = true;
+          enableOffloadCmd = true;
+        };
+        # Make sure to use the correct Bus ID values for your system!
+        intelBusId = "${cfg.intelBusID}";
+        nvidiaBusId = "${cfg.nvidiaBusID}";
+      };
+    };
+  };
+}
+
+
+### Archivo: ./modules/vm-guest-services.nix
+# 💫 https://github.com/JaKooLit 💫 #
+
+{ lib, pkgs, config, ... }:
+with lib;
+let
+  cfg = config.vm.guest-services;
+in
+{
+  options.vm.guest-services = {
+    enable = mkEnableOption "Enable Virtual Machine Guest Services";
+  };
+
+  config = mkIf cfg.enable {
+    services.qemuGuest.enable = true;
+    services.spice-vdagentd.enable = true;
+    services.spice-webdavd.enable = true;
+  };
+}
+
+
+### Archivo: ./todo_concatenado.nix
+
+

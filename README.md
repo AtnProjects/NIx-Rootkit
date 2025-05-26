@@ -39,9 +39,9 @@ Las aplicaciones están declaradas en `hosts/rootkit/home/home.nix` y cubren:
 
 # Scripts
 
-En la carpeta `scripts/` se incluyen scripts bash para tareas específicas. Por ejemplo:
 
-### Script de gestión WiFi (p.sh)
+
+### Script de gestión WiFi (script.sh)
 ese json es de wifilist android shizuku
 - Lee un archivo JSON (`WiFiList_26_05_2025.json`) con redes WiFi y sus contraseñas.
 - Crea perfiles de conexión usando `nmcli` para cada red con seguridad WPA-PSK.
@@ -52,7 +52,7 @@ ese json es de wifilist android shizuku
 Ejemplo de uso:
 
 ```bash
-bash p.sh
+bash script.sh
 ```
 ![image](https://github.com/user-attachments/assets/9b7f9cc7-f6c5-40d7-9780-a60d26413498)
 

@@ -1,0 +1,242 @@
+
+[m                                 [22;1;34mrootkit[22;39m@[22;1;34mrootkit
+[m                         ─────────────────────────── 
+[m                        [22;1;33m [22;39m -> Linux 6.14.7-zen1
+[m                        [22;1;34m [22;39m -> Hyprland 0.45.2 (Wayland)
+[m                        [22;1;33m [22;39m -> zsh 5.9
+[m                        [22;1;34m [22;39m -> kitty 0.37.0
+[m                        [22;1;35m󰍛 [22;39m -> 2.77 GiB / 15.25 GiB
+[m                        [22;1;32m󰔛 [22;39m -> 29 mins
+[m                         ─────────────────────────── 
+[m                           [31m  [32m  [33m  [34m  [35m  [36m  [37m  [90m 
+
+[m[40m rootkit@rootkit [30;44m ~ [34;49m[39m [32mcd[39m [4mNixOS-Hyprland
+[m[40m rootkit@rootkit [30;44m ~/NixOS-Hyprland [34;43m[30m  main ±✚ [33;49m[39m [33mexport[39m NIXPKGS_ALLOW_BROKEN=1
+
+[m[40m rootkit@rootkit [30;44m ~/NixOS-Hyprland [34;43m[30m  main ±✚ [33;49m[39m [32;4msudo[39;24m [32mnixos-rebuild[39m  switch  --flake .#rootkit
+[m[sudo] password for rootkit: 
+[m[22;1;35mwarning:[22;39m Git tree '/home/rootkit/NixOS-Hyprland' is dirty
+[mbuilding the system configuration...
+[m[22;1;35mwarning:[22;39m Git tree '/home/rootkit/NixOS-Hyprland' is dirty
+[m[22;1;31merror:[22;39m builder for '[22;1;35m/nix/store/71a2labvm32pimm4bdww3h82lklkzl0a-nvidia-x11-565.77-6.14.7.drv[22;39m' failed with exit code 2;
+[m       last 25 log lines:
+[m       >   CC [M]  nvidia-drm/nvidia-drm-utils.o
+[m       >   CC [M]  nvidia-drm/nvidia-drm-crtc.o
+[m       >   CC [M]  nvidia-drm/nvidia-drm-encoder.o
+[m       >   CC [M]  nvidia-drm/nvidia-drm-connector.o
+[m       >   CC [M]  nvidia-drm/nvidia-drm-gem.o
+[m       >   CC [M]  nvidia-drm/nvidia-drm-fb.o
+[m       >   CC [M]  nvidia-drm/nvidia-drm-modeset.o
+[m       >   CC [M]  nvidia-drm/nvidia-drm-fence.o
+[m       > [22;1mnvidia-drm/nvidia-drm-drv.c:1907:6:[22m [22;1;31merror: [22;39m'[22;1mstruct drm_driver[22m' has no member named '[22;1mdate[22m'
+[m       >  1907 |     .[22;1;31mdate[22;39m                   = "20160202",
+[m       >       |      [22;1;31m^~~~
+[m       > [22;1mnvidia-drm/nvidia-drm-drv.c:1907:31:[22m [22;1;35mwarning: [22;39minitialization of '[22;1munsigned int[22m' from '[22;1mchar *[22m' makes integer from pointer without a 
+[mcast []
+[m       >  1907 |     .date                   = [22;1;35m"20160202"[22;39m,
+[m       >       |                               [22;1;35m^~~~~~~~~~
+[m       > [22;1mnvidia-drm/nvidia-drm-drv.c:1907:31:[22m [22;1;36mnote: [22;39m(near initialization for '[22;1mnv_drm_driver.driver_features[22m')
+[m       > [22;1mnvidia-drm/nvidia-drm-drv.c:1907:31:[22m [22;1;31merror: [22;39minitializer element is not computable at load time
+[m       > [22;1mnvidia-drm/nvidia-drm-drv.c:1907:31:[22m [22;1;36mnote: [22;39m(near initialization for '[22;1mnv_drm_driver.driver_features[22m')
+[m       > make[4]: *** [/nix/store/m8n7bxcy7f5qvnzpmzxn0mcm45s7q19b-linux-zen-6.14.7-dev/lib/modules/6.14.7-zen1/source/scripts/Makefile.bui
+[mld:207: nvidia-drm/nvidia-drm-drv.o] Error 1
+[m       > make[4]: *** Waiting for unfinished jobs....
+[m       > make[3]: *** [/nix/store/m8n7bxcy7f5qvnzpmzxn0mcm45s7q19b-linux-zen-6.14.7-dev/lib/modules/6.14.7-zen1/source/Makefile:1995: .] Er
+[mror 2
+[m       > make[2]: *** [/nix/store/m8n7bxcy7f5qvnzpmzxn0mcm45s7q19b-linux-zen-6.14.7-dev/lib/modules/6.14.7-zen1/source/Makefile:251: __sub-
+[mmake] Error 2
+[m       > make[2]: Leaving directory '/build/NVIDIA-Linux-x86_64-565.77/kernel'
+[m       > make[1]: *** [Makefile:251: __sub-make] Error 2
+[m       > make[1]: Leaving directory '/nix/store/m8n7bxcy7f5qvnzpmzxn0mcm45s7q19b-linux-zen-6.14.7-dev/lib/modules/6.14.7-zen1/source'
+[m       > make: *** [Makefile:115: modules] Error 2
+[m       For full logs, run '[22;1mnix log /nix/store/71a2labvm32pimm4bdww3h82lklkzl0a-nvidia-x11-565.77-6.14.7.drv[22m'.
+[m[22;1;31merror:[22;39m [22;1;35m1[22;39m dependencies of derivation '[22;1;35m/nix/store/jjlnwl8fswq7pk37cnn26nrgijvzy7j5-etc.drv[22;39m' failed to build
+[m[22;1;31merror:[22;39m [22;1;35m1[22;39m dependencies of derivation '[22;1;35m/nix/store/p9dp5996cl3rj4ryb92jb6ph5qlg5fd3-firmware.drv[22;39m' failed to build
+[m[22;1;31merror:[22;39m [22;1;35m1[22;39m dependencies of derivation '[22;1;35m/nix/store/wcw14sfhmzfzk7cs5a176fg2w91dmi0l-linux-zen-6.14.7-modules.drv[22;39m' failed to build
+[m[22;1;31merror:[22;39m [22;1;35m1[22;39m dependencies of derivation '[22;1;35m/nix/store/9par8vq8jvsnbjhr5gyjdsjw7avh24xd-system-path.drv[22;39m' failed to build
+[m[22;1;31merror:[22;39m [22;1;35m1[22;39m dependencies of derivation '[22;1;35m/nix/store/85nbvawff4b2xbx4hzjd6gkjfx13zdkb-nixos-system-rootkit-24.11.20250521.2baa12f.drv[22;39m' failed to
+[m build
+[m[40m [31m✘ [39mrootkit@rootkit [30;44m ~/NixOS-Hyprland [34;43m[30m  main ±✚ [33;49m[39m [32mnvim[39m [4mhosts/rootkit/config.nix[24m                
+[m[40m rootkit@rootkit [30;44m ~/NixOS-Hyprland [34;43m[30m  main ±✚ [33;49m[39m [32;4msudo[39;24m [32mnixos-rebuild[39m  switch  --flake .#rootkit
+[m[22;1;35mwarning:[22;39m Git tree '/home/rootkit/NixOS-Hyprland' is dirty
+[mbuilding the system configuration...
+[m[22;1;35mwarning:[22;39m Git tree '/home/rootkit/NixOS-Hyprland' is dirty
+[m[22;1;31merror:
+[m       … while calling the '[22;1;35mhead[22;39m' builtin
+[m         [22;1;34mat [35m/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/lib/attrsets.nix:1534:13[22;39m:
+[m         1533|           if length values == 1 || pred here (elemAt values 1) (head values) then
+[m         1534|             head values
+[m             |             [22;1;31m^
+[m         1535|           else
+
+[m       … while evaluating the attribute '[22;1;35mvalue[22;39m'
+[m         [22;1;34mat [35m/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/lib/modules.nix:992:7[22;39m:
+[m          991|     // {
+[m          992|       value = addErrorContext "while evaluating the option `${showOption loc}':" value;
+[m             |       [22;1;31m^
+[m          993|       inherit (res.defsFinal') highestPrio;
+
+[m       … while evaluating the option `system.build.toplevel':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/system/activation/top-level.ni
+[mx':
+
+[m       … while evaluating the option `assertions':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/system/boot/systemd.nix':
+
+[m       … while evaluating the option `systemd.services':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/services/logging/logrotate.nix
+[m':
+
+[m       … while evaluating the option `services.logrotate.enable':
+
+[m       … while evaluating the option `users.groups':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/config/resolvconf.nix':
+
+[m       … while evaluating the option `networking.resolvconf.enable':
+
+[m       … while evaluating the option `environment.etc':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/hardware/video/nvidia.nix':
+
+[m       … while evaluating the option `hardware.nvidia.package':
+
+[m       … while evaluating definitions from `/nix/store/lqzh8169wsixdmwgrpf9il0l6hr82xs9-source/modules/nvidia-drivers.nix':
+
+[m       … while evaluating the option `boot.kernelPackages':
+
+[m       … while evaluating definitions from `/nix/store/lqzh8169wsixdmwgrpf9il0l6hr82xs9-source/hosts/rootkit/config.nix':
+
+[m       [22;1;35m(stack trace truncated; use '--show-trace' to show the full, detailed trace)
+
+[m       [22;1;31merror:[22;39m attribute '[22;1;35mlinuxPackages_6_12_1[22;39m' missing
+[m       [22;1;34mat [35m/nix/store/lqzh8169wsixdmwgrpf9il0l6hr82xs9-source/hosts/rootkit/config.nix:28:22[22;39m:
+[m           27|     #kernelPackages = pkgs.;
+[m           28|     kernelPackages = pkgs.linuxPackages_6_12_1; # Kernel
+[m             |                      [22;1;31m^
+[m           29|    # kernelPackages = pkgs.linuxPackages_lts;  # kernel LTS compatible
+[m       Did you mean one of [22;1;35mlinuxPackages_6_11[22;39m or [22;1;35mlinuxPackages_6_12[22;39m?
+[m[40m [31m✘ [39mrootkit@rootkit [30;44m ~/NixOS-Hyprland [34;43m[30m  main ±✚ [33;49m[39m [32mnvim[39m [4mhosts/rootkit/config.nix[24m                
+[m[40m rootkit@rootkit [30;44m ~/NixOS-Hyprland [34;43m[30m  main ±✚ [33;49m[39m [32;4msudo[39;24m [32mnixos-rebuild[39m  switch  --flake .#rootkit
+[m[22;1;35mwarning:[22;39m Git tree '/home/rootkit/NixOS-Hyprland' is dirty
+[mbuilding the system configuration...
+[m[22;1;35mwarning:[22;39m Git tree '/home/rootkit/NixOS-Hyprland' is dirty
+[m[22;1;31merror:
+[m       … while calling the '[22;1;35mhead[22;39m' builtin
+[m         [22;1;34mat [35m/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/lib/attrsets.nix:1534:13[22;39m:
+[m         1533|           if length values == 1 || pred here (elemAt values 1) (head values) then
+[m         1534|             head values
+[m             |             [22;1;31m^
+[m         1535|           else
+
+[m       … while evaluating the attribute '[22;1;35mvalue[22;39m'
+[m         [22;1;34mat [35m/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/lib/modules.nix:992:7[22;39m:
+[m          991|     // {
+[m          992|       value = addErrorContext "while evaluating the option `${showOption loc}':" value;
+[m             |       [22;1;31m^
+[m          993|       inherit (res.defsFinal') highestPrio;
+
+[m       … while evaluating the option `system.build.toplevel':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/system/activation/top-level.ni
+[mx':
+
+[m       … while evaluating the option `assertions':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/system/boot/systemd.nix':
+
+[m       … while evaluating the option `systemd.services':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/services/logging/logrotate.nix
+[m':
+
+[m       … while evaluating the option `services.logrotate.enable':
+
+[m       … while evaluating the option `users.groups':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/config/resolvconf.nix':
+
+[m       … while evaluating the option `networking.resolvconf.enable':
+
+[m       … while evaluating the option `environment.etc':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/hardware/video/nvidia.nix':
+
+[m       … while evaluating the option `hardware.nvidia.package':
+
+[m       … while evaluating definitions from `/nix/store/x256hjw9ih0fzcqzdrknpb95bwfhkjmq-source/modules/nvidia-drivers.nix':
+
+[m       … while evaluating the option `boot.kernelPackages':
+
+[m       … while evaluating definitions from `/nix/store/x256hjw9ih0fzcqzdrknpb95bwfhkjmq-source/hosts/rootkit/config.nix':
+
+[m       [22;1;35m(stack trace truncated; use '--show-trace' to show the full, detailed trace)
+
+[m       [22;1;31merror:[22;39m linux 6.11 was removed because it reached its end of life upstream
+[m[40m [31m✘ [39mrootkit@rootkit [30;44m ~/NixOS-Hyprland [34;43m[30m  main ±✚ [33;49m[39m [32mnvim[39m [4mhosts/rootkit/config.nix[24m                
+[m[40m rootkit@rootkit [30;44m ~/NixOS-Hyprland [34;43m[30m  main ±✚ [33;49m[39m [32;4msudo[39;24m [32mnixos-rebuild[39m  switch  --flake .#rootkit
+[m[22;1;35mwarning:[22;39m Git tree '/home/rootkit/NixOS-Hyprland' is dirty
+[mbuilding the system configuration...
+[m[22;1;35mwarning:[22;39m Git tree '/home/rootkit/NixOS-Hyprland' is dirty
+[m[22;1;31merror:
+[m       … while calling the '[22;1;35mhead[22;39m' builtin
+[m         [22;1;34mat [35m/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/lib/attrsets.nix:1534:13[22;39m:
+[m         1533|           if length values == 1 || pred here (elemAt values 1) (head values) then
+[m         1534|             head values
+[m             |             [22;1;31m^
+[m         1535|           else
+
+[m       … while evaluating the attribute '[22;1;35mvalue[22;39m'
+[m         [22;1;34mat [35m/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/lib/modules.nix:992:7[22;39m:
+[m          991|     // {
+[m          992|       value = addErrorContext "while evaluating the option `${showOption loc}':" value;
+[m             |       [22;1;31m^
+[m          993|       inherit (res.defsFinal') highestPrio;
+
+[m       … while evaluating the option `system.build.toplevel':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/system/activation/top-level.ni
+[mx':
+
+[m       … while evaluating the option `assertions':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/system/boot/systemd.nix':
+
+[m       … while evaluating the option `systemd.services':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/services/logging/logrotate.nix
+[m':
+
+[m       … while evaluating the option `services.logrotate.enable':
+
+[m       … while evaluating the option `users.groups':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/config/resolvconf.nix':
+
+[m       … while evaluating the option `networking.resolvconf.enable':
+
+[m       … while evaluating the option `environment.etc':
+
+[m       … while evaluating definitions from `/nix/store/0966yw276wcd30l1ky55fscmn8i5vimc-source/nixos/modules/hardware/video/nvidia.nix':
+
+[m       … while evaluating the option `hardware.nvidia.package':
+
+[m       … while evaluating definitions from `/nix/store/a3v7gr9jcjbayx46a7zialvdnw1dls4g-source/modules/nvidia-drivers.nix':
+
+[m       … while evaluating the option `boot.kernelPackages':
+
+[m       … while evaluating definitions from `/nix/store/a3v7gr9jcjbayx46a7zialvdnw1dls4g-source/hosts/rootkit/config.nix':
+
+[m       [22;1;35m(stack trace truncated; use '--show-trace' to show the full, detailed trace)
+
+[m       [22;1;31merror:[22;39m attribute '[22;1;35mlinuxPackages_6_4[22;39m' missing
+[m       [22;1;34mat [35m/nix/store/a3v7gr9jcjbayx46a7zialvdnw1dls4g-source/hosts/rootkit/config.nix:28:22[22;39m:
+[m           27|     #kernelPackages = pkgs.;
+[m           28|     kernelPackages = pkgs.linuxPackages_6_4; # Kernel
+[m             |                      [22;1;31m^
+[m           29|    # kernelPackages = pkgs.linuxPackages_lts;  # kernel LTS compatible
+[m       Did you mean one of [22;1;35mlinuxPackages_5_4[22;39m, [22;1;35mlinuxPackages_6_1[22;39m, [22;1;35mlinuxPackages_6_14[22;39m, [22;1;35mlinuxPackages_6_6[22;39m or [22;1;35mlinuxPackages_6_9[22;39m?
+[m[40m [31m✘ [39mrootkit@rootkit [30;44m ~/NixOS-Hyprland [34;43m[30m  main ±✚ [33;49m[39m 

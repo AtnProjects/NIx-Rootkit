@@ -63,7 +63,7 @@ Definidas en: `hosts/rootkit/home/home.nix`
 
 ## 📸 Interfaz
 
-| Escritorio | Aplicaciones |
+|   1         |  2            |
 |------------|--------------|
 | ![2025-05-26_01-41](https://github.com/user-attachments/assets/2990542d-0242-4462-a38c-c1a1d619a734) | ![2025-05-26_01-45](https://github.com/user-attachments/assets/264173df-49d7-405f-aef3-3dcc07e94705) |
 
